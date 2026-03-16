@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>J&K Wedding Quiz</title>
+<link href="https://fonts.googleapis.com/css2?family=IM+Fell+English:ital@0;1&family=Lato:wght@400;700&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing:border-box; margin:0; padding:0; }
+body {
+  font-family:'Lato',sans-serif;
+  background:#1a2e0a;
+  min-height:100vh;
+  display:flex; align-items:center; justify-content:center;
+  color:#f5edd8;
+}
+.card {
+  background:rgba(26,46,10,.9);
+  border:1px solid rgba(201,168,76,.3);
+  border-radius:18px;
+  padding:2.5rem 3rem;
+  text-align:center;
+  max-width:420px; width:90%;
+  box-shadow:0 8px 40px rgba(0,0,0,.5);
+}
+h1 { font-family:'IM Fell English',serif; font-size:1.8rem; color:#e8c96a; margin-bottom:.4rem; }
+p  { color:rgba(245,237,216,.6); font-size:.9rem; margin-bottom:2rem; font-style:italic; }
+.divider { width:60px; height:1px; background:linear-gradient(90deg,transparent,#c9a84c,transparent); margin:.8rem auto 1.8rem; }
+a {
+  display:block; width:100%;
+  padding:1rem; border-radius:10px;
+  font-family:'IM Fell English',serif; font-size:1.1rem;
+  text-decoration:none; margin-bottom:.75rem;
+  transition:transform .15s, opacity .15s;
+}
+a:hover { transform:scale(1.02); opacity:.92; }
+.a-host   { background:linear-gradient(135deg,#4a7a22,#5a9028); color:#f5edd8; }
+.a-player { background:rgba(201,168,76,.15); border:1px solid rgba(201,168,76,.35); color:#e8c96a; }
+small { color:rgba(245,237,216,.35); font-size:.78rem; }
+</style>
+</head>
+<body>
+<div class="card">
+  <div style="font-size:2.5rem;margin-bottom:.8rem">💍</div>
+  <h1>J & K Wedding Quiz</h1>
+  <p>The Fellowship of the Quiz</p>
+  <div class="divider"></div>
+  <a class="a-host"   href="/host">🖥️ Host Screen (big display)</a>
+  <a class="a-player" href="/player">📱 Join as Player (phone)</a>
+  <small>Players: open /player on your phone</small>
+</div>
+</body>
+</html>
