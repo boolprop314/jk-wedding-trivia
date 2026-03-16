@@ -312,7 +312,9 @@ main { flex:1; display:flex; flex-direction:column; align-items:center; justify-
 </div>
 
 <script>
-const socket = io();
+const socket = io({ transports: ['websocket', 'polling'] });
+socket.on('connect', () => console.log('✅ Socket connected:', socket.id));
+socket.on('connect_error', (e) => console.error('❌ Socket error:', e.message));
 
 // ── URL DISPLAY ───────────────────────────────────────────
 const playerUrl = window.location.origin + '/player';
