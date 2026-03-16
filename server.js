@@ -8,6 +8,8 @@ const server = http.createServer(app);
 const io = new Server(server, { cors: { origin: '*' } });
 
 app.use(express.static(__dirname));
+app.get('/host', (req, res) => res.sendFile(__dirname + '/host.html'));
+app.get('/player', (req, res) => res.sendFile(__dirname + '/player.html'));
 
 // ── QUESTIONS ──────────────────────────────────────────────
 const QUESTIONS = [
