@@ -43,11 +43,19 @@ const QUESTIONS = [
     correct:3, lore:"Eowyn! Don't ask Krista why — just don't. 😂" }
 ];
 
+// Shuffle answer options while tracking correct answer
+function shuffleQuestion(q) {
+  const indices = [0,1,2,3].sort(() => Math.random() - 0.5);
+  const newOpts = indices.map(i => q.opts[i]);
+  const newCorrect = indices.indexOf(q.correct);
+  return { ...q, opts: newOpts, correct: newCorrect };
+}
+
 const QUESTION_TIME = 15;
-let game = { phase:'lobby', qi:-1, timeLeft:0, timer:null, players:{}, answers:{}, leaderboard:[] };
+let game = { phase:'lobby', qi:-1, timeLeft:0, timer:null, players:{}, answers:{}, leaderboard:[], shuffled: QUESTIONS.map(shuffleQuestion) };
 
 function getState() {
-  const q = game.qi >= 0 && game.qi < QUESTIONS.length ? QUESTIONS[game.qi] : null;
+  const qs = game.shuffled || QUESTIONS; const q = game.qi >= 0 && game.qi < qs.length ? qs[game.qi] : null;
   return {
     phase: game.phase,
     qi: game.qi,
@@ -70,14 +78,14 @@ function broadcast() {
 function resetGame() {
   clearInterval(game.timer);
   const players = game.players;
-  game = { phase:'lobby', qi:-1, timeLeft:0, timer:null, players, answers:{}, leaderboard:[] };
+  game = { phase:'lobby', qi:-1, timeLeft:0, timer:null, players, answers:{}, leaderboard:[], shuffled: QUESTIONS.map(shuffleQuestion) };
   Object.values(game.players).forEach(p => { p.score=0; p.answered=false; });
 }
 
 function startQuestion() {
   game.qi++;
   console.log('startQuestion qi=' + game.qi);
-  if (game.qi >= QUESTIONS.length) { endGame(); return; }
+  const qs = game.shuffled || QUESTIONS; if (game.qi >= qs.length) { endGame(); return; }
   game.phase = 'question';
   game.answers = {};
   game.timeLeft = QUESTION_TIME;
@@ -93,7 +101,7 @@ function startQuestion() {
 
 function revealAnswer() {
   game.phase = 'reveal';
-  const q = QUESTIONS[game.qi];
+  const q = (game.shuffled || QUESTIONS)[game.qi];
   Object.entries(game.answers).forEach(([sid, ans]) => {
     if (!game.players[sid]) return;
     const ok = ans === q.correct;

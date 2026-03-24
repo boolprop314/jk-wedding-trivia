@@ -289,7 +289,7 @@ socket.on('state', (s) => {
     document.querySelectorAll('.opt-host').forEach(b => b.className=b.className.replace(/ correct| wrong/g,''));
     $('btn-reveal').style.display = 'inline-block';
     $('btn-next').style.display = 'none';
-    if (musicPlaying) { stopMusic(); currentPhase=''; startPhaseMusic('question'); }
+    if (musicPlaying) { stopMusic(); currentPhase=''; startPhaseMusic('question'); } else if (!musicPlaying && currentPhase) { stopMusic(); currentPhase=''; }
   }
   else if (s.phase === 'reveal') {
     $('btn-reveal').style.display = 'none';
@@ -303,7 +303,11 @@ socket.on('state', (s) => {
     $('h-lore-main').textContent = 'Answer revealed!';
     $('h-lore-text').textContent = s.lore || '';
     renderLB(s.leaderboard, 'h-lb-final');
-    if (musicPlaying) { stopMusic(); currentPhase=''; playFanfare(); }
+    if (musicPlaying) {
+      stopMusic(); currentPhase=''; playFanfare();
+      // After fanfare, restart question music so it's ready for next question
+      setTimeout(() => { if (musicPlaying) { currentPhase=''; startPhaseMusic('question'); } }, 2500);
+    }
   }
   else if (s.phase === 'done') {
     show('s-done');

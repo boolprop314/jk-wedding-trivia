@@ -216,7 +216,12 @@ socket.on('state', (s) => {
   }
   else if (s.phase === 'reveal') {
     renderLB(s.leaderboard, 'p-lb-rows');
-    show('s-lb');
+    const active = document.querySelector('.screen.active');
+    if (active && active.id === 's-feedback') {
+      setTimeout(() => show('s-lb'), 3000);
+    } else {
+      show('s-lb');
+    }
   }
   else if (s.phase === 'done') {
     const pct = myScore / (s.total * 1000);
@@ -263,6 +268,11 @@ socket.on('answer_result', ({correct, pts, lore, timedOut}) => {
   $('fb-lore').textContent = lore||'';
   $('fb-pts').textContent  = correct?'+'+pts+' points':'';
   show('s-feedback');
+  // Auto-transition to leaderboard after 3 seconds
+  setTimeout(() => {
+    const active = document.querySelector('.screen.active');
+    if (active && active.id === 's-feedback') show('s-lb');
+  }, 3000);
 });
 
 // ── LEADERBOARD ────────────────────────────────────────────
