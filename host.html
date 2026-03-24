@@ -81,6 +81,15 @@ main{flex:1;display:flex;flex-direction:column;align-items:center;justify-conten
   </svg>
 </div>
 <div id="petals"></div>
+
+<!-- YouTube background music -->
+<iframe id="yt-music" 
+  src="https://www.youtube.com/embed/e9mJiA3vn1w?autoplay=1&loop=1&playlist=e9mJiA3vn1w&controls=0&mute=0"
+  style="position:fixed;width:1px;height:1px;opacity:0;pointer-events:none;top:-9999px"
+  allow="autoplay"
+  frameborder="0">
+</iframe>
+
 <div id="app">
   <div class="hdr">
     <span class="hdr-title">💍 How Well Do You Know Jolo & Krista?</span>
@@ -152,7 +161,7 @@ socket.on('connect', () => console.log('connected', socket.id));
 socket.on('connect_error', e => console.error('connect error', e.message));
 
 // ── AUDIO ──────────────────────────────────────────────────
-let ctx, masterGain, musicPlaying = false, musicNodes = [], currentPhase = '';
+let musicPlaying = false;
 
 function getCtx() {
   if (!ctx) { ctx = new (window.AudioContext || window.webkitAudioContext)(); }
@@ -160,78 +169,10 @@ function getCtx() {
   return ctx;
 }
 
-function stopMusic() {
-  musicPlaying = false;
-  musicNodes.forEach(n => { try { n.stop(0); } catch(e){} });
-  musicNodes = [];
-  if (masterGain) { masterGain.disconnect(); masterGain = null; }
-}
 
-function playPhaseMusic(phase) {
-  if (phase === currentPhase) return;
-  currentPhase = phase;
-  stopMusic();
-  if (!musicPlaying && phase !== 'lobby') return;
-  startPhaseMusic(phase);
-}
 
-function startPhaseMusic(phase) {
-  const c = getCtx();
-  musicPlaying = true;
-  masterGain = c.createGain();
-  masterGain.gain.setValueAtTime(0.07, c.currentTime);
-  masterGain.connect(c.destination);
 
-  if (phase === 'lobby') {
-    // warm romantic waiting music
-    const notes = [392,440,494,523,494,440,392,349,392,440,494,523,587,523,494,440];
-    scheduleMelody(notes, 120, 'sine', masterGain);
-  } else if (phase === 'question') {
-    // upbeat kahoot-style tension
-    const notes = [523,659,784,659,523,440,523,659,784,880,784,659,784,659,523,659];
-    scheduleMelody(notes, 180, 'square', masterGain);
-  } else if (phase === 'done') {
-    // celebratory
-    const notes = [523,659,784,1047,784,1047,880,784,659,784,659,523,659,523,440,523];
-    scheduleMelody(notes, 140, 'triangle', masterGain);
-  }
-}
 
-function scheduleMelody(notes, bpm, type, gain) {
-  const c = getCtx();
-  const step = 60 / bpm;
-  let t = c.currentTime;
-  function loop() {
-    if (!musicPlaying) return;
-    notes.forEach((freq, i) => {
-      const o = c.createOscillator(), g = c.createGain();
-      o.type = type;
-      o.frequency.setValueAtTime(freq, t + i * step);
-      g.gain.setValueAtTime(0, t + i * step);
-      g.gain.linearRampToValueAtTime(0.6, t + i * step + 0.01);
-      g.gain.linearRampToValueAtTime(0, t + i * step + step * 0.75);
-      o.connect(g); g.connect(gain);
-      o.start(t + i * step);
-      o.stop(t + i * step + step);
-      musicNodes.push(o);
-    });
-    t += notes.length * step;
-    if (musicPlaying) setTimeout(loop, (notes.length * step - 0.3) * 1000);
-  }
-  loop();
-}
-
-function playFanfare() {
-  const c = getCtx();
-  const g = c.createGain(); g.connect(c.destination);
-  [523,659,784,1047].forEach((f,i) => {
-    const o = c.createOscillator(); o.type='triangle';
-    o.frequency.setValueAtTime(f, c.currentTime + i*0.1);
-    g.gain.setValueAtTime(0.3, c.currentTime + i*0.1);
-    g.gain.linearRampToValueAtTime(0, c.currentTime + i*0.1 + 0.15);
-    o.connect(g); o.start(c.currentTime + i*0.1); o.stop(c.currentTime + i*0.1 + 0.2);
-  });
-}
 
 function playTick() {
   const c = getCtx();
@@ -242,14 +183,16 @@ function playTick() {
 }
 
 function toggleMusic() {
-  if (musicPlaying) {
-    stopMusic(); currentPhase='';
-    $('music-btn').textContent = '♪ Music: OFF';
+  const iframe = $('yt-music');
+  musicPlaying = !musicPlaying;
+  iframe.style.display = musicPlaying ? 'block' : 'none';
+  if (!musicPlaying) {
+    // Mute by reloading with mute=1
+    iframe.src = 'https://www.youtube.com/embed/e9mJiA3vn1w?autoplay=0&loop=1&playlist=e9mJiA3vn1w&controls=0&mute=1';
   } else {
-    musicPlaying = true;
-    startPhaseMusic(game_phase || 'lobby');
-    $('music-btn').textContent = '♪ Music: ON';
+    iframe.src = 'https://www.youtube.com/embed/e9mJiA3vn1w?autoplay=1&loop=1&playlist=e9mJiA3vn1w&controls=0&mute=0';
   }
+  $('music-btn').textContent = musicPlaying ? '♪ Music: ON' : '♪ Music: OFF';
 }
 
 let game_phase = 'lobby';
@@ -273,7 +216,7 @@ socket.on('state', (s) => {
   if (s.phase === 'lobby') {
     show('s-lobby');
     $('lobby-count').textContent = s.playerCount;
-    if (musicPlaying) { stopMusic(); currentPhase=''; startPhaseMusic('lobby'); }
+
   }
   else if (s.phase === 'question') {
     show('s-question');
@@ -289,7 +232,7 @@ socket.on('state', (s) => {
     document.querySelectorAll('.opt-host').forEach(b => b.className=b.className.replace(/ correct| wrong/g,''));
     $('btn-reveal').style.display = 'inline-block';
     $('btn-next').style.display = 'none';
-    if (musicPlaying) { stopMusic(); currentPhase=''; startPhaseMusic('question'); } else if (!musicPlaying && currentPhase) { stopMusic(); currentPhase=''; }
+
   }
   else if (s.phase === 'reveal') {
     $('btn-reveal').style.display = 'none';
@@ -303,16 +246,12 @@ socket.on('state', (s) => {
     $('h-lore-main').textContent = 'Answer revealed!';
     $('h-lore-text').textContent = s.lore || '';
     renderLB(s.leaderboard, 'h-lb-final');
-    if (musicPlaying) {
-      stopMusic(); currentPhase=''; playFanfare();
-      // After fanfare, restart question music so it's ready for next question
-      setTimeout(() => { if (musicPlaying) { currentPhase=''; startPhaseMusic('question'); } }, 2500);
-    }
+
   }
   else if (s.phase === 'done') {
     show('s-done');
     renderLB(s.leaderboard, 'h-lb-final');
-    if (musicPlaying) { stopMusic(); currentPhase=''; startPhaseMusic('done'); }
+
   }
 });
 
@@ -333,9 +272,6 @@ socket.on('tick', ({timeLeft}) => {
 });
 
 $('btn-start-game').addEventListener('click', () => {
-  getCtx(); musicPlaying=true; currentPhase='';
-  startPhaseMusic('question');
-  $('music-btn').textContent = '♪ Music: ON';
   socket.emit('host_start');
 });
 
