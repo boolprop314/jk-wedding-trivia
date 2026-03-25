@@ -159,7 +159,7 @@ main{flex:1;display:flex;flex-direction:column;align-items:center;justify-conten
 <script>
 const socket = io();
 const $ = id => document.getElementById(id);
-let myName = '', myScore = 0;
+let myName = '', myScore = 0, feedbackTimer = null;
 
 function show(id) { document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active')); $(id).classList.add('active'); }
 
@@ -204,6 +204,7 @@ socket.on('state', (s) => {
     if (myName) show('s-wait');
   }
   else if (s.phase === 'question') {
+    if (feedbackTimer) { clearTimeout(feedbackTimer); feedbackTimer = null; }
     $('p-qtag').textContent = 'Question '+(s.qi+1)+'/'+s.total;
     $('p-prog-f').style.width = (s.qi/s.total*100)+'%';
     $('p-emoji').textContent = s.question.emoji;
@@ -269,9 +270,10 @@ socket.on('answer_result', ({correct, pts, lore, timedOut}) => {
   $('fb-pts').textContent  = correct?'+'+pts+' points':'';
   show('s-feedback');
   // Auto-transition to leaderboard after 3 seconds
-  setTimeout(() => {
+  feedbackTimer = setTimeout(() => {
     const active = document.querySelector('.screen.active');
     if (active && active.id === 's-feedback') show('s-lb');
+    feedbackTimer = null;
   }, 3000);
 });
 
@@ -279,7 +281,7 @@ socket.on('answer_result', ({correct, pts, lore, timedOut}) => {
 const medals=['gold','silver','bronze'];
 function renderLB(data,id) {
   const el=$(id); if(!data||!data.length){el.innerHTML='<p style="color:var(--cdim);text-align:center;font-size:.85rem">No scores yet</p>';return;}
-  el.innerHTML=data.map((e,i)=>`<div class="lb-row-p ${e.name===myName?'my-score-row':''}"><span class="lb-r-rank ${medals[i]||''}">${i+1}</span><span class="lb-r-name">${e.name}${e.name===myName?' (you)':''}</span><span class="lb-r-pts">${e.score.toLocaleString()}</span></div>`).join('');
+  el.innerHTML=data.slice(0,3).map((e,i)=>`<div class="lb-row-p ${e.name===myName?'my-score-row':''}"><span class="lb-r-rank ${medals[i]||''}">${i+1}</span><span class="lb-r-name">${e.name}${e.name===myName?' (you)':''}</span><span class="lb-r-pts">${e.score.toLocaleString()}</span></div>`).join('');
 }
 
 // particles

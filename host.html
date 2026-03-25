@@ -204,7 +204,7 @@ function setArc(pct, urgent) { const a=$('h-arc'); a.style.strokeDashoffset=CIRC
 const medals = ['gold','silver','bronze'];
 function renderLB(data, id) {
   const el=$(id); if(!data||!data.length){el.innerHTML='<p style="color:var(--cdim);text-align:center;padding:.5rem">No scores yet</p>';return;}
-  el.innerHTML=data.map((e,i)=>`<div class="lb-row" style="animation-delay:${i*.07}s"><span class="lb-rank ${medals[i]||''}">${i+1}</span><span class="lb-name-h">${e.name}</span><span class="lb-pts-h">${e.score.toLocaleString()}</span></div>`).join('');
+  el.innerHTML=data.slice(0,3).map((e,i)=>`<div class="lb-row" style="animation-delay:${i*.07}s"><span class="lb-rank ${medals[i]||''}">${i+1}</span><span class="lb-name-h">${e.name}</span><span class="lb-pts-h">${e.score.toLocaleString()}</span></div>`).join('');
 }
 
 // ── STATE HANDLER ──────────────────────────────────────────

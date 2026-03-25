@@ -115,7 +115,7 @@ function revealAnswer() {
   });
   game.leaderboard = Object.values(game.players)
     .map(p => ({ name:p.name, score:p.score }))
-    .sort((a,b) => b.score - a.score).slice(0, 10);
+    .sort((a,b) => b.score - a.score).slice(0, 3);
   broadcast();
 }
 
@@ -123,7 +123,7 @@ function endGame() {
   game.phase = 'done';
   game.leaderboard = Object.values(game.players)
     .map(p => ({ name:p.name, score:p.score }))
-    .sort((a,b) => b.score - a.score).slice(0, 10);
+    .sort((a,b) => b.score - a.score).slice(0, 3);
   broadcast();
 }
 
@@ -137,11 +137,18 @@ io.on('connection', (socket) => {
   socket.on('host_restart', () => { console.log('host_restart'); resetGame(); broadcast(); });
 
   socket.on('join', ({ name }) => {
-    console.log('JOIN ' + name);
-    game.players[socket.id] = { name:name.trim().slice(0,20), score:0, answered:false, _timeLeft:0 };
-    socket.emit('joined', { name: game.players[socket.id].name });
+    const cleanName = name.trim().slice(0, 20);
+    console.log('JOIN ' + cleanName);
+    // Check if player with same name already exists (reconnect) - restore their score
+    const existing = Object.values(game.players).find(p => p.name === cleanName);
+    const score = existing ? existing.score : 0;
+    // Remove old entry if reconnecting
+    const oldId = Object.keys(game.players).find(id => game.players[id].name === cleanName);
+    if (oldId) delete game.players[oldId];
+    game.players[socket.id] = { name:cleanName, score, answered:false, _timeLeft:0 };
+    socket.emit('joined', { name: cleanName });
     socket.emit('state', getState());
-    io.emit('player_joined', { playerCount:Object.keys(game.players).length, name });
+    io.emit('player_joined', { playerCount:Object.keys(game.players).length, name:cleanName });
   });
 
   socket.on('answer', ({ idx }) => {
